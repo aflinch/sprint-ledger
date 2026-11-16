@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: sprint-tracker-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tracker}
+      POSTGRES_USER: ${POSTGRES_USER:-tracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tracker}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - tracker-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tracker} -d ${POSTGRES_DB:-tracker}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: tracker-api/Dockerfile
+    container_name: sprint-tracker-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-tracker}
+      DB_USERNAME: ${POSTGRES_USER:-tracker}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-tracker}
+      JWT_SECRET: ${JWT_SECRET:-change-me-change-me-change-me-change-me}
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+volumes:
+  tracker-pgdata:

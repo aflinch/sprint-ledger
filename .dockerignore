@@ -1,0 +1,8 @@
+target/
+*.iml
+.idea/
+.env
+.DS_Store
+tracker-api/target/
+tracker-common/target/
+tracker-cli/target/
